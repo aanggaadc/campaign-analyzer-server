@@ -30,6 +30,7 @@ func (uc *CampaignUsecase) CreateCampaign(
 ) (*domain.Campaign, error) {
 
 	campaign, err := domain.NewCampaign(
+		"",
 		userID,
 		name,
 		platform,
@@ -45,9 +46,11 @@ func (uc *CampaignUsecase) CreateCampaign(
 		return nil, err
 	}
 
-	if err := uc.repo.Save(campaign); err != nil {
+	id, err := uc.repo.Save(campaign)
+	if err != nil {
 		return nil, err
 	}
 
+	campaign.ID = id
 	return campaign, nil
 }

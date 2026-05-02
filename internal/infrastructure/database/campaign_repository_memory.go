@@ -14,8 +14,7 @@ func NewCampaignRepositoryMemory() *CampaignRepositoryMemory {
 	}
 }
 
-func (r *CampaignRepositoryMemory) Save(campaign *domain.Campaign) error {
-	// simple append (simulate DB insert)
+func (r *CampaignRepositoryMemory) Save(campaign *domain.Campaign) (string, error) {
 	r.data = append(r.data, campaign)
-	return nil
+	return campaign.ID, nil
 }

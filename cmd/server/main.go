@@ -31,9 +31,8 @@ func main() {
 	auth := r.Group("/")
 	auth.Use(middleware.AuthMiddleware())
 
-	r.GET("/campaigns", handler.GetCampaigns)
-
-	r.POST("/campaigns", handler.CreateCampaign)
+	auth.GET("campaigns", handler.GetCampaigns)
+	auth.POST("campaigns", handler.CreateCampaign)
 
 	r.Run(":8080")
 }

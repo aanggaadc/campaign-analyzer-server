@@ -19,14 +19,14 @@ type Campaign struct {
 }
 
 func NewCampaign(
-	userID, name, platform string,
+	ID, userID, name, platform string,
 	impressions, clicks, conversions int,
 	cost float64,
 	start, end time.Time,
 ) (*Campaign, error) {
 
 	campaign := &Campaign{
-		ID:          "", // nanti diisi repository
+		ID:          ID,
 		UserID:      userID,
 		Name:        name,
 		Platform:    platform,

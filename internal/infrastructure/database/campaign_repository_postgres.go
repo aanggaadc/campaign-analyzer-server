@@ -57,14 +57,16 @@ func (r *CampaignRepositoryPostgres) FindAll(userID string) ([]*domain.Campaign,
 	return campaigns, nil
 }
 
-func (r *CampaignRepositoryPostgres) Save(campaign *domain.Campaign) error {
+func (r *CampaignRepositoryPostgres) Save(campaign *domain.Campaign) (string, error) {
 	query := `
 		INSERT INTO campaigns 
 		(user_id, name, platform, impressions, clicks, conversions, cost, date_start, date_end)
 		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+		RETURNING id
 	`
 
-	_, err := r.db.Exec(context.Background(), query,
+	var id string
+	err := r.db.QueryRow(context.Background(), query,
 		campaign.UserID,
 		campaign.Name,
 		campaign.Platform,
@@ -74,7 +76,7 @@ func (r *CampaignRepositoryPostgres) Save(campaign *domain.Campaign) error {
 		campaign.Cost,
 		campaign.DateStart,
 		campaign.DateEnd,
-	)
+	).Scan(&id)
 
-	return err
+	return id, err
 }
