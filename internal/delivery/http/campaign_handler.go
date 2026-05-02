@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"campaign-analyzer/internal/delivery/http/presenter"
 	"campaign-analyzer/internal/usecase"
 
 	"github.com/gin-gonic/gin"
@@ -37,7 +38,28 @@ func (h *CampaignHandler) GetCampaigns(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, campaigns)
+	response := presenter.ToCampaignListResponse(campaigns)
+
+	c.JSON(http.StatusOK, response)
+}
+
+func (h *CampaignHandler) GetCampaignMetrics(c *gin.Context) {
+	userID := c.GetString("user_id")
+	campaignID := c.Param("id")
+
+	campaign, err := h.usecase.GetCampaignByID(userID, campaignID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "campaign not found"})
+		return
+	}
+
+	response := presenter.CampaignMetrics{
+		CTR: campaign.CTR(),
+		CPC: campaign.CPC(),
+		CPA: campaign.CPA(),
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func (h *CampaignHandler) CreateCampaign(c *gin.Context) {

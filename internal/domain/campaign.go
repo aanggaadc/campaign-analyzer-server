@@ -64,3 +64,24 @@ func (c *Campaign) Validate() error {
 
 	return nil
 }
+
+func (c *Campaign) CTR() float64 {
+	if c.Impressions == 0 {
+		return 0
+	}
+	return float64(c.Clicks) / float64(c.Impressions)
+}
+
+func (c *Campaign) CPC() float64 {
+	if c.Clicks == 0 {
+		return 0
+	}
+	return c.Cost / float64(c.Clicks)
+}
+
+func (c *Campaign) CPA() float64 {
+	if c.Conversions == 0 {
+		return 0
+	}
+	return c.Cost / float64(c.Conversions)
+}

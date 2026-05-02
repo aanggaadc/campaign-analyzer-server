@@ -10,6 +10,12 @@ type CampaignUsecase struct {
 	repo repository.CampaignRepository
 }
 
+type CampaignMetrics struct {
+	CTR float64 `json:"ctr"`
+	CPC float64 `json:"cpc"`
+	CPA float64 `json:"cpa"`
+}
+
 func NewCampaignUsecase(repo repository.CampaignRepository) *CampaignUsecase {
 	return &CampaignUsecase{
 		repo: repo,
@@ -18,6 +24,10 @@ func NewCampaignUsecase(repo repository.CampaignRepository) *CampaignUsecase {
 
 func (uc *CampaignUsecase) GetCampaigns(userID string) ([]*domain.Campaign, error) {
 	return uc.repo.FindAll(userID)
+}
+
+func (u *CampaignUsecase) GetCampaignByID(userID, campaignID string) (*domain.Campaign, error) {
+	return u.repo.FindByID(userID, campaignID)
 }
 
 func (uc *CampaignUsecase) CreateCampaign(
@@ -53,4 +63,12 @@ func (uc *CampaignUsecase) CreateCampaign(
 
 	campaign.ID = id
 	return campaign, nil
+}
+
+func (u *CampaignUsecase) GetCampaignMetrics(campaign *domain.Campaign) CampaignMetrics {
+	return CampaignMetrics{
+		CTR: campaign.CTR(),
+		CPC: campaign.CPC(),
+		CPA: campaign.CPA(),
+	}
 }

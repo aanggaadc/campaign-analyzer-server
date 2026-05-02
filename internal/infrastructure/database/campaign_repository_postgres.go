@@ -57,6 +57,37 @@ func (r *CampaignRepositoryPostgres) FindAll(userID string) ([]*domain.Campaign,
 	return campaigns, nil
 }
 
+func (r *CampaignRepositoryPostgres) FindByID(userID, campaignID string) (*domain.Campaign, error) {
+	query := `
+		SELECT id, user_id, name, platform, impressions, clicks, conversions, cost, date_start, date_end
+		FROM campaigns
+		WHERE id = $1 AND user_id = $2
+	`
+
+	row := r.db.QueryRow(context.Background(), query, campaignID, userID)
+
+	var c domain.Campaign
+
+	err := row.Scan(
+		&c.ID,
+		&c.UserID,
+		&c.Name,
+		&c.Platform,
+		&c.Impressions,
+		&c.Clicks,
+		&c.Conversions,
+		&c.Cost,
+		&c.DateStart,
+		&c.DateEnd,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &c, nil
+}
+
 func (r *CampaignRepositoryPostgres) Save(campaign *domain.Campaign) (string, error) {
 	query := `
 		INSERT INTO campaigns 
