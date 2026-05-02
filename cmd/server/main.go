@@ -12,6 +12,8 @@ import (
 	"github.com/joho/godotenv"
 
 	"campaign-analyzer/pkg/middleware"
+
+	"campaign-analyzer/internal/infrastructure/ai"
 )
 
 func main() {
@@ -23,8 +25,18 @@ func main() {
 	db := database.NewPostgresPool(os.Getenv("DATABASE_URL"))
 
 	repo := database.NewCampaignRepositoryPostgres(db)
+	analysisRepo := database.NewAnalysisRepository(db)
+	// openAIService := ai.NewOpenAIService(os.Getenv("OPENAI_API_KEY"))
+	geminiService := ai.NewGeminiService(os.Getenv("GEMINI_API_KEY"))
+
 	uc := usecase.NewCampaignUsecase(repo)
-	handler := http.NewCampaignHandler(uc)
+	analyzeUC := usecase.NewAnalyzeCampaignUsecase(
+		repo,
+		analysisRepo,
+		geminiService,
+	)
+
+	handler := http.NewCampaignHandler(uc, analyzeUC)
 
 	r := gin.Default()
 
@@ -32,6 +44,7 @@ func main() {
 	auth.Use(middleware.AuthMiddleware())
 
 	auth.GET("campaigns", handler.GetCampaigns)
+	auth.GET("/campaigns/:id/analyze", handler.AnalyzeCampaign)
 	auth.GET("/campaigns/:id/metrics", handler.GetCampaignMetrics)
 	auth.POST("campaigns", handler.CreateCampaign)
 

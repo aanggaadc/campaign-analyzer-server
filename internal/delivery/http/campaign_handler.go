@@ -22,11 +22,18 @@ type CreateCampaignRequest struct {
 }
 
 type CampaignHandler struct {
-	usecase *usecase.CampaignUsecase
+	usecase   *usecase.CampaignUsecase
+	analyzeUC *usecase.AnalyzeCampaignUsecase
 }
 
-func NewCampaignHandler(u *usecase.CampaignUsecase) *CampaignHandler {
-	return &CampaignHandler{usecase: u}
+func NewCampaignHandler(
+	u *usecase.CampaignUsecase,
+	analyzeUC *usecase.AnalyzeCampaignUsecase,
+) *CampaignHandler {
+	return &CampaignHandler{
+		usecase:   u,
+		analyzeUC: analyzeUC,
+	}
 }
 
 func (h *CampaignHandler) GetCampaigns(c *gin.Context) {
@@ -102,4 +109,26 @@ func (h *CampaignHandler) CreateCampaign(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, campaign)
+}
+
+func (h *CampaignHandler) AnalyzeCampaign(c *gin.Context) {
+	userID := c.GetString("user_id")
+	campaignID := c.Param("id")
+
+	result, err := h.analyzeUC.Execute(userID, campaignID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	if result == nil {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "analysis not available",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
 }
