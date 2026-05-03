@@ -41,13 +41,13 @@ func (h *CampaignHandler) GetCampaigns(c *gin.Context) {
 
 	campaigns, err := h.usecase.GetCampaigns(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, presenter.ErrorResponse(err.Error()))
 		return
 	}
 
 	response := presenter.ToCampaignListResponse(campaigns)
 
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, presenter.Success(response))
 }
 
 func (h *CampaignHandler) GetCampaignMetrics(c *gin.Context) {
@@ -56,7 +56,7 @@ func (h *CampaignHandler) GetCampaignMetrics(c *gin.Context) {
 
 	campaign, err := h.usecase.GetCampaignByID(userID, campaignID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "campaign not found"})
+		c.JSON(http.StatusNotFound, presenter.ErrorResponse("campaign not found"))
 		return
 	}
 
@@ -66,7 +66,7 @@ func (h *CampaignHandler) GetCampaignMetrics(c *gin.Context) {
 		CPA: campaign.CPA(),
 	}
 
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, presenter.Success(response))
 }
 
 func (h *CampaignHandler) CreateCampaign(c *gin.Context) {
@@ -74,20 +74,20 @@ func (h *CampaignHandler) CreateCampaign(c *gin.Context) {
 	userID := c.GetString("user_id")
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, presenter.ErrorResponse(err.Error()))
 		return
 	}
 
 	// parse date
 	start, err := time.Parse("2006-01-02", req.DateStart)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid start date"})
+		c.JSON(http.StatusBadRequest, presenter.ErrorResponse("invalid start date"))
 		return
 	}
 
 	end, err := time.Parse("2006-01-02", req.DateEnd)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid end date"})
+		c.JSON(http.StatusBadRequest, presenter.ErrorResponse("invalid end date"))
 		return
 	}
 
@@ -104,11 +104,11 @@ func (h *CampaignHandler) CreateCampaign(c *gin.Context) {
 	)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, presenter.ErrorResponse(err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, campaign)
+	c.JSON(http.StatusOK, presenter.Success((campaign)))
 }
 
 func (h *CampaignHandler) AnalyzeCampaign(c *gin.Context) {
@@ -117,9 +117,7 @@ func (h *CampaignHandler) AnalyzeCampaign(c *gin.Context) {
 
 	result, err := h.analyzeUC.Execute(userID, campaignID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, presenter.ErrorResponse(err.Error()))
 		return
 	}
 
@@ -130,5 +128,7 @@ func (h *CampaignHandler) AnalyzeCampaign(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, result)
+	response := presenter.ToAnalysisResponse(result)
+	c.JSON(http.StatusOK, presenter.Success(response))
+
 }
