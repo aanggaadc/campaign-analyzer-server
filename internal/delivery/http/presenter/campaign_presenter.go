@@ -16,6 +16,7 @@ type CampaignResponse struct {
 	Platform    string          `json:"platform"`
 	Clicks      int             `json:"clicks"`
 	Conversions int             `json:"conversions"`
+	Impressions int             `json:"impressions"`
 	Cost        float64         `json:"cost"`
 	DateStart   string          `json:"date_start"`
 	DateEnd     string          `json:"date_end"`
@@ -29,6 +30,7 @@ func ToCampaignResponse(c *domain.Campaign) CampaignResponse {
 		Platform:    c.Platform,
 		Clicks:      c.Clicks,
 		Conversions: c.Conversions,
+		Impressions: c.Impressions,
 		Cost:        c.Cost,
 		DateStart:   c.DateStart.Format("2006-01-02"),
 		DateEnd:     c.DateEnd.Format("2006-01-02"),
