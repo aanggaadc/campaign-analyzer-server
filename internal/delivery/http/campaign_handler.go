@@ -66,6 +66,21 @@ func (h *CampaignHandler) GetCampaigns(c *gin.Context) {
 	c.JSON(http.StatusOK, presenter.SuccessWithMeta(response, meta))
 }
 
+func (h *CampaignHandler) GetCampaignDetail(c *gin.Context) {
+	userID := c.GetString("user_id")
+	campaignID := c.Param("id")
+
+	campaign, err := h.usecase.GetCampaignByID(userID, campaignID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, presenter.ErrorResponse("campaign not found"))
+		return
+	}
+
+	response := presenter.ToCampaignResponse(campaign)
+
+	c.JSON(http.StatusOK, presenter.Success(response))
+}
+
 func (h *CampaignHandler) GetCampaignMetrics(c *gin.Context) {
 	userID := c.GetString("user_id")
 	campaignID := c.Param("id")

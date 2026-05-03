@@ -59,6 +59,7 @@ func main() {
 	auth.Use(middleware.AuthMiddleware())
 
 	auth.GET("campaigns", handler.GetCampaigns)
+	auth.GET("/campaigns/:id", handler.GetCampaignDetail)
 	auth.GET("/campaigns/:id/analyze", handler.AnalyzeCampaign)
 	auth.GET("/campaigns/:id/metrics", handler.GetCampaignMetrics)
 	auth.POST("campaigns", handler.CreateCampaign)
