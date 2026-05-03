@@ -14,6 +14,10 @@ import (
 	"campaign-analyzer/pkg/middleware"
 
 	"campaign-analyzer/internal/infrastructure/ai"
+
+	"time"
+
+	"github.com/gin-contrib/cors"
 )
 
 func main() {
@@ -39,6 +43,17 @@ func main() {
 	handler := http.NewCampaignHandler(uc, analyzeUC)
 
 	r := gin.Default()
+
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: []string{
+			os.Getenv("FRONTEND_URL"),
+		},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	auth := r.Group("/")
 	auth.Use(middleware.AuthMiddleware())
