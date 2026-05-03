@@ -16,15 +16,20 @@ func NewCampaignRepositoryPostgres(db *pgxpool.Pool) *CampaignRepositoryPostgres
 	return &CampaignRepositoryPostgres{db: db}
 }
 
-func (r *CampaignRepositoryPostgres) FindAll(userID string) ([]*domain.Campaign, error) {
+func (r *CampaignRepositoryPostgres) FindAll(
+	userID string,
+	limit, offset int,
+) ([]*domain.Campaign, error) {
+
 	query := `
 		SELECT id, user_id, name, platform, impressions, clicks, conversions, cost, date_start, date_end
 		FROM campaigns
 		WHERE user_id = $1
 		ORDER BY created_at DESC
+		LIMIT $2 OFFSET $3
 	`
 
-	rows, err := r.db.Query(context.Background(), query, userID)
+	rows, err := r.db.Query(context.Background(), query, userID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +59,28 @@ func (r *CampaignRepositoryPostgres) FindAll(userID string) ([]*domain.Campaign,
 		campaigns = append(campaigns, &c)
 	}
 
+	// optional tapi best practice
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return campaigns, nil
+}
+
+func (r *CampaignRepositoryPostgres) Count(userID string) (int, error) {
+	query := `
+		SELECT COUNT(*) 
+		FROM campaigns
+		WHERE user_id = $1
+	`
+
+	var total int
+	err := r.db.QueryRow(context.Background(), query, userID).Scan(&total)
+	if err != nil {
+		return 0, err
+	}
+
+	return total, nil
 }
 
 func (r *CampaignRepositoryPostgres) FindByID(userID, campaignID string) (*domain.Campaign, error) {

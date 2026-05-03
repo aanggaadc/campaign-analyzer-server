@@ -22,8 +22,25 @@ func NewCampaignUsecase(repo repository.CampaignRepository) *CampaignUsecase {
 	}
 }
 
-func (uc *CampaignUsecase) GetCampaigns(userID string) ([]*domain.Campaign, error) {
-	return uc.repo.FindAll(userID)
+func (uc *CampaignUsecase) GetCampaigns(
+	userID string,
+	page int,
+	limit int,
+) ([]*domain.Campaign, int, error) {
+
+	offset := (page - 1) * limit
+
+	campaigns, err := uc.repo.FindAll(userID, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total, err := uc.repo.Count(userID)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return campaigns, total, nil
 }
 
 func (u *CampaignUsecase) GetCampaignByID(userID, campaignID string) (*domain.Campaign, error) {

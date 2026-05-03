@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -39,7 +40,20 @@ func NewCampaignHandler(
 func (h *CampaignHandler) GetCampaigns(c *gin.Context) {
 	userID := c.GetString("user_id")
 
-	campaigns, err := h.usecase.GetCampaigns(userID)
+	// default values
+	page := 1
+	limit := 10
+
+	// query params
+	if p := c.Query("page"); p != "" {
+		fmt.Sscanf(p, "%d", &page)
+	}
+
+	if l := c.Query("limit"); l != "" {
+		fmt.Sscanf(l, "%d", &limit)
+	}
+
+	campaigns, total, err := h.usecase.GetCampaigns(userID, page, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, presenter.ErrorResponse(err.Error()))
 		return
@@ -47,7 +61,9 @@ func (h *CampaignHandler) GetCampaigns(c *gin.Context) {
 
 	response := presenter.ToCampaignListResponse(campaigns)
 
-	c.JSON(http.StatusOK, presenter.Success(response))
+	meta := presenter.PaginationMeta(page, limit, total)
+
+	c.JSON(http.StatusOK, presenter.SuccessWithMeta(response, meta))
 }
 
 func (h *CampaignHandler) GetCampaignMetrics(c *gin.Context) {
