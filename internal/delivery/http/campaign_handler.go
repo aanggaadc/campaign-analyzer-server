@@ -182,7 +182,7 @@ func (h *CampaignHandler) CreateCampaign(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, presenter.Success((campaign)))
+	c.JSON(http.StatusOK, presenter.Success(presenter.ToCampaignResponse(campaign)))
 }
 
 func (h *CampaignHandler) AnalyzeCampaign(c *gin.Context) {
