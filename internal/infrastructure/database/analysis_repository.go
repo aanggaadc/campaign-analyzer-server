@@ -117,9 +117,19 @@ func (r *AnalysisRepository) Save(analysis *domain.Analysis) (string, error) {
 
 func (r *AnalysisRepository) FindByID(userID, analysisID string) (*domain.Analysis, error) {
 	query := `
-		SELECT id, user_id, campaign_id, summary, issues, recommendations, priority_actions, created_at
-		FROM analyses
-		WHERE id = $1 AND user_id = $2
+		SELECT 
+		a.id, 
+		a.user_id, 
+		a.campaign_id, 
+		a.summary, 
+		a.issues, 
+		a.recommendations, 
+		a.priority_actions, 
+		a.created_at, 
+		c.name, 
+		(c.clicks::float / NULLIF(c.impressions, 0)) AS ctr 
+		FROM analyses a LEFT JOIN campaigns c ON c.id = a.campaign_id 
+		WHERE a.id = $1 AND a.user_id = $2
 	`
 
 	row := r.db.QueryRow(context.Background(), query, analysisID, userID)
@@ -135,6 +145,8 @@ func (r *AnalysisRepository) FindByID(userID, analysisID string) (*domain.Analys
 		&c.Recommendations,
 		&c.PriorityActions,
 		&c.CreatedAt,
+		&c.CampaignName,
+		&c.CTR,
 	)
 
 	if err != nil {

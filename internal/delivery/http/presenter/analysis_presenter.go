@@ -11,6 +11,9 @@ type AnalysisResponse struct {
 	Recommendations []string `json:"recommendations"`
 	PriorityActions []string `json:"priority_actions"`
 	CreatedAt       string   `json:"created_at"`
+
+	CampaignName string  `json:"campaign_name"`
+	CTR          float64 `json:"ctr"`
 }
 
 func ToAnalysisResponse(a *domain.Analysis) AnalysisResponse {
@@ -23,6 +26,8 @@ func ToAnalysisResponse(a *domain.Analysis) AnalysisResponse {
 		Recommendations: a.Recommendations,
 		PriorityActions: a.PriorityActions,
 		CreatedAt:       a.CreatedAt.Format("2006-01-02"),
+		CampaignName:    a.CampaignName,
+		CTR:             a.CTR,
 	}
 }
 

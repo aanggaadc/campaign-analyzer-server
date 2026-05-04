@@ -11,4 +11,7 @@ type Analysis struct {
 	Recommendations []string
 	PriorityActions []string
 	CreatedAt       time.Time
+
+	CampaignName string
+	CTR          float64
 }
