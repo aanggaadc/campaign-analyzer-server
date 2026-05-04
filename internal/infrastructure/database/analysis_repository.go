@@ -21,10 +21,20 @@ func (r *AnalysisRepository) FindAll(
 ) ([]*domain.Analysis, error) {
 
 	query := `
-		SELECT id, user_id, campaign_id, summary, issues, recommendations, priority_actions
-		FROM analyses
-		WHERE user_id = $1
-		ORDER BY created_at DESC
+		SELECT 
+		a.id, 
+		a.user_id, 
+		a.campaign_id, 
+		a.summary, 
+		a.issues, 
+		a.recommendations, 
+		a.priority_actions,
+		a.created_at,
+		c.name,
+		(c.clicks::float / NULLIF(c.impressions, 0)) AS ctr 
+		FROM analyses a LEFT JOIN campaigns c ON c.id = a.campaign_id 
+		WHERE a.user_id = $1
+		ORDER BY a.created_at DESC
 		LIMIT $2 OFFSET $3
 	`
 
@@ -45,8 +55,11 @@ func (r *AnalysisRepository) FindAll(
 			&c.CampaignID,
 			&c.Summary,
 			&c.Issues,
-			&c.PriorityActions,
 			&c.Recommendations,
+			&c.PriorityActions,
+			&c.CreatedAt,
+			&c.CampaignName,
+			&c.CTR,
 		)
 		if err != nil {
 			return nil, err
@@ -134,24 +147,24 @@ func (r *AnalysisRepository) FindByID(userID, analysisID string) (*domain.Analys
 
 	row := r.db.QueryRow(context.Background(), query, analysisID, userID)
 
-	var c domain.Analysis
+	var a domain.Analysis
 
 	err := row.Scan(
-		&c.ID,
-		&c.UserID,
-		&c.CampaignID,
-		&c.Summary,
-		&c.Issues,
-		&c.Recommendations,
-		&c.PriorityActions,
-		&c.CreatedAt,
-		&c.CampaignName,
-		&c.CTR,
+		&a.ID,
+		&a.UserID,
+		&a.CampaignID,
+		&a.Summary,
+		&a.Issues,
+		&a.Recommendations,
+		&a.PriorityActions,
+		&a.CreatedAt,
+		&a.CampaignName,
+		&a.CTR,
 	)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &c, nil
+	return &a, nil
 }
