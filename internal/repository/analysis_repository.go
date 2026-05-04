@@ -6,4 +6,5 @@ type AnalysisRepository interface {
 	FindAll(userID string, limit, offset int) ([]*domain.Analysis, error)
 	Count(userID string) (int, error)
 	Save(analysis *domain.Analysis) (string, error)
+	FindByID(userID, analysisId string) (*domain.Analysis, error)
 }

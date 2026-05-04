@@ -71,6 +71,10 @@ func (uc *AnalyzeCampaignUsecase) GetAnalyses(
 	return analyses, total, nil
 }
 
+func (u *AnalyzeCampaignUsecase) GetAnalysisID(userID, analysisID string) (*domain.Analysis, error) {
+	return u.analysisRepo.FindByID(userID, analysisID)
+}
+
 func (uc *AnalyzeCampaignUsecase) Execute(userID, campaignID string) (*domain.Analysis, error) {
 	// 1. ambil campaign
 	campaign, err := uc.repo.FindByID(userID, campaignID)

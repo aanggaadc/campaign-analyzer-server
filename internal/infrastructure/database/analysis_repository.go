@@ -114,3 +114,32 @@ func (r *AnalysisRepository) Save(analysis *domain.Analysis) (string, error) {
 
 	return id, nil
 }
+
+func (r *AnalysisRepository) FindByID(userID, analysisID string) (*domain.Analysis, error) {
+	query := `
+		SELECT id, user_id, campaign_id, summary, issues, recommendations, priority_actions, created_at
+		FROM analyses
+		WHERE id = $1 AND user_id = $2
+	`
+
+	row := r.db.QueryRow(context.Background(), query, analysisID, userID)
+
+	var c domain.Analysis
+
+	err := row.Scan(
+		&c.ID,
+		&c.UserID,
+		&c.CampaignID,
+		&c.Summary,
+		&c.Issues,
+		&c.Recommendations,
+		&c.PriorityActions,
+		&c.CreatedAt,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &c, nil
+}
