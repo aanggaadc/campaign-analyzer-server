@@ -15,17 +15,81 @@ func NewAnalysisRepository(db *pgxpool.Pool) *AnalysisRepository {
 	return &AnalysisRepository{db: db}
 }
 
+func (r *AnalysisRepository) FindAll(
+	userID string,
+	limit, offset int,
+) ([]*domain.Analysis, error) {
+
+	query := `
+		SELECT id, user_id, summary, issues, recommendations, priority_actions
+		FROM analyses
+		WHERE user_id = $1
+		ORDER BY created_at DESC
+		LIMIT $2 OFFSET $3
+	`
+
+	rows, err := r.db.Query(context.Background(), query, userID, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var analyses []*domain.Analysis
+
+	for rows.Next() {
+		var c domain.Analysis
+
+		err := rows.Scan(
+			&c.ID,
+			&c.UserID,
+			&c.Summary,
+			&c.Issues,
+			&c.PriorityActions,
+			&c.Recommendations,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		analyses = append(analyses, &c)
+	}
+
+	// optional tapi best practice
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return analyses, nil
+}
+
+func (r *AnalysisRepository) Count(userID string) (int, error) {
+	query := `
+		SELECT COUNT(*) 
+		FROM analyses
+		WHERE user_id = $1
+	`
+
+	var total int
+	err := r.db.QueryRow(context.Background(), query, userID).Scan(&total)
+	if err != nil {
+		return 0, err
+	}
+
+	return total, nil
+}
+
 func (r *AnalysisRepository) Save(analysis *domain.Analysis) (string, error) {
 	query := `
 		INSERT INTO analyses (
 			campaign_id,
+			user_id,
 			summary,
 			issues,
 			recommendations,
 			priority_actions,
 			created_at
 		)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id
 	`
 
@@ -35,6 +99,7 @@ func (r *AnalysisRepository) Save(analysis *domain.Analysis) (string, error) {
 		context.Background(),
 		query,
 		analysis.CampaignID,
+		analysis.UserID,
 		analysis.Summary,
 		analysis.Issues,
 		analysis.Recommendations,

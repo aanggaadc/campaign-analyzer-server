@@ -50,6 +50,27 @@ func NewAnalyzeCampaignUsecase(
 	}
 }
 
+func (uc *AnalyzeCampaignUsecase) GetAnalyses(
+	userID string,
+	page int,
+	limit int,
+) ([]*domain.Analysis, int, error) {
+
+	offset := (page - 1) * limit
+
+	analyses, err := uc.analysisRepo.FindAll(userID, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total, err := uc.analysisRepo.Count(userID)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return analyses, total, nil
+}
+
 func (uc *AnalyzeCampaignUsecase) Execute(userID, campaignID string) (*domain.Analysis, error) {
 	// 1. ambil campaign
 	campaign, err := uc.repo.FindByID(userID, campaignID)
@@ -89,6 +110,7 @@ func (uc *AnalyzeCampaignUsecase) Execute(userID, campaignID string) (*domain.An
 	// 5. mapping ke domain
 	analysis := &domain.Analysis{
 		CampaignID:      campaign.ID,
+		UserID:          userID,
 		Summary:         result.Summary,
 		Issues:          result.Issues,
 		Recommendations: result.Recommendations,

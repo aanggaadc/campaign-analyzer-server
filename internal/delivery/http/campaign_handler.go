@@ -66,6 +66,34 @@ func (h *CampaignHandler) GetCampaigns(c *gin.Context) {
 	c.JSON(http.StatusOK, presenter.SuccessWithMeta(response, meta))
 }
 
+func (h *CampaignHandler) GetAnalyses(c *gin.Context) {
+	userID := c.GetString("user_id")
+
+	page := 1
+	limit := 10
+
+	if p := c.Query("page"); p != "" {
+		fmt.Sscanf(p, "%d", &page)
+	}
+
+	if l := c.Query("limit"); l != "" {
+		fmt.Sscanf(l, "%d", &limit)
+	}
+
+	analyses, total, err := h.analyzeUC.GetAnalyses(userID, page, limit)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, presenter.ErrorResponse(err.Error()))
+		return
+	}
+
+	response := presenter.ToAnalysisListResponse(analyses)
+
+	meta := presenter.PaginationMeta(page, limit, total)
+
+	c.JSON(http.StatusOK, presenter.SuccessWithMeta(response, meta))
+}
+
 func (h *CampaignHandler) GetCampaignDetail(c *gin.Context) {
 	userID := c.GetString("user_id")
 	campaignID := c.Param("id")

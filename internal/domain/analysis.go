@@ -4,6 +4,7 @@ import "time"
 
 type Analysis struct {
 	ID              string
+	UserID          string
 	CampaignID      string
 	Summary         string
 	Issues          []string

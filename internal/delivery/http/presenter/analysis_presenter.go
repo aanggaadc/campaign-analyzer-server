@@ -17,3 +17,13 @@ func ToAnalysisResponse(a *domain.Analysis) AnalysisResponse {
 		PriorityActions: a.PriorityActions,
 	}
 }
+
+func ToAnalysisListResponse(campaigns []*domain.Analysis) []AnalysisResponse {
+	var result []AnalysisResponse
+
+	for _, c := range campaigns {
+		result = append(result, ToAnalysisResponse(c))
+	}
+
+	return result
+}
