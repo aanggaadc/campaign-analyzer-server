@@ -67,5 +67,10 @@ func main() {
 	auth.GET("analyses", handler.GetAnalyses)
 	auth.GET("analyses/:id", handler.GetAnalysisDetail)
 
-	r.Run(":8080")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	r.Run(":" + port)
 }
