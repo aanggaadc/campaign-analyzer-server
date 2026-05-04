@@ -21,7 +21,7 @@ func (r *AnalysisRepository) FindAll(
 ) ([]*domain.Analysis, error) {
 
 	query := `
-		SELECT id, user_id, summary, issues, recommendations, priority_actions
+		SELECT id, user_id, campaign_id, summary, issues, recommendations, priority_actions
 		FROM analyses
 		WHERE user_id = $1
 		ORDER BY created_at DESC
@@ -42,6 +42,7 @@ func (r *AnalysisRepository) FindAll(
 		err := rows.Scan(
 			&c.ID,
 			&c.UserID,
+			&c.CampaignID,
 			&c.Summary,
 			&c.Issues,
 			&c.PriorityActions,

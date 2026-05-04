@@ -12,6 +12,7 @@ type AnalysisResponse struct {
 type AnalysisListResponse struct {
 	ID              string   `json:"id"`
 	UserID          string   `json:"user_id"`
+	CampaignId      string   `json:"campaign_id"`
 	Summary         string   `json:"summary"`
 	Issues          []string `json:"issues"`
 	Recommendations []string `json:"recommendations"`
@@ -35,6 +36,7 @@ func ToAnalysisListResponse(campaigns []*domain.Analysis) []AnalysisListResponse
 		result = append(result, AnalysisListResponse{
 			ID:              c.ID,
 			UserID:          c.UserID,
+			CampaignId:      c.CampaignID,
 			Summary:         c.Summary,
 			Issues:          c.Issues,
 			Recommendations: c.Recommendations,
