@@ -26,8 +26,6 @@ func main() {
 		log.Println("no .env file found")
 	}
 
-	log.Println("FRONTEND_URL =", os.Getenv("FRONTEND_URL"))
-
 	db := database.NewPostgresPool(os.Getenv("DATABASE_URL"))
 
 	repo := database.NewCampaignRepositoryPostgres(db)
