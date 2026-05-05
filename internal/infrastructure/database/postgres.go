@@ -2,15 +2,22 @@ package database
 
 import (
 	"context"
-	"log"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func NewPostgresPool(connString string) *pgxpool.Pool {
-	pool, err := pgxpool.New(context.Background(), connString)
+func NewPostgresPool(databaseURL string) *pgxpool.Pool {
+	config, err := pgxpool.ParseConfig(databaseURL)
 	if err != nil {
-		log.Fatalf("unable to connect to database: %v", err)
+		panic(err)
+	}
+
+	config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+
+	pool, err := pgxpool.NewWithConfig(context.Background(), config)
+	if err != nil {
+		panic(err)
 	}
 
 	return pool
