@@ -31,6 +31,7 @@ func (r *AnalysisRepository) FindAll(
 		a.priority_actions,
 		a.created_at,
 		c.name,
+		c.platform,
 		(c.clicks::float / NULLIF(c.impressions, 0)) AS ctr 
 		FROM analyses a LEFT JOIN campaigns c ON c.id = a.campaign_id 
 		WHERE a.user_id = $1
@@ -59,6 +60,7 @@ func (r *AnalysisRepository) FindAll(
 			&c.PriorityActions,
 			&c.CreatedAt,
 			&c.CampaignName,
+			&c.Platform,
 			&c.CTR,
 		)
 		if err != nil {
@@ -140,6 +142,7 @@ func (r *AnalysisRepository) FindByID(userID, analysisID string) (*domain.Analys
 		a.priority_actions, 
 		a.created_at, 
 		c.name, 
+		c.platform,
 		(c.clicks::float / NULLIF(c.impressions, 0)) AS ctr 
 		FROM analyses a LEFT JOIN campaigns c ON c.id = a.campaign_id 
 		WHERE a.id = $1 AND a.user_id = $2
@@ -159,6 +162,7 @@ func (r *AnalysisRepository) FindByID(userID, analysisID string) (*domain.Analys
 		&a.PriorityActions,
 		&a.CreatedAt,
 		&a.CampaignName,
+		&a.Platform,
 		&a.CTR,
 	)
 

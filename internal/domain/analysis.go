@@ -13,5 +13,6 @@ type Analysis struct {
 	CreatedAt       time.Time
 
 	CampaignName string
+	Platform     string
 	CTR          float64
 }

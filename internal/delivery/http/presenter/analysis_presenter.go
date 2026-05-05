@@ -13,6 +13,7 @@ type AnalysisResponse struct {
 	CreatedAt       string   `json:"created_at"`
 
 	CampaignName string  `json:"campaign_name"`
+	Platform     string  `json:"platform"`
 	CTR          float64 `json:"ctr"`
 }
 
@@ -27,6 +28,7 @@ func ToAnalysisResponse(a *domain.Analysis) AnalysisResponse {
 		PriorityActions: a.PriorityActions,
 		CreatedAt:       a.CreatedAt.Format("2006-01-02"),
 		CampaignName:    a.CampaignName,
+		Platform:        a.Platform,
 		CTR:             a.CTR,
 	}
 }
