@@ -6,6 +6,7 @@ import (
 
 	"campaign-analyzer/internal/delivery/http"
 	"campaign-analyzer/internal/infrastructure/database"
+	"campaign-analyzer/internal/infrastructure/pdf"
 	"campaign-analyzer/internal/usecase"
 
 	"github.com/gin-gonic/gin"
@@ -32,6 +33,7 @@ func main() {
 	analysisRepo := database.NewAnalysisRepository(db)
 	// openAIService := ai.NewOpenAIService(os.Getenv("OPENAI_API_KEY"))
 	geminiService := ai.NewGeminiService(os.Getenv("GEMINI_API_KEY"))
+	pdfService := pdf.NewPDFService()
 
 	campaignUc := usecase.NewCampaignUsecase(repo)
 	analyzeUC := usecase.NewAnalyzeCampaignUsecase(
@@ -39,9 +41,13 @@ func main() {
 		analysisRepo,
 		geminiService,
 	)
+	exportUc := usecase.NewExportAnalysisUsecase(
+		analysisRepo,
+		pdfService,
+	)
 
 	campaignHandler := http.NewCampaignHandler(campaignUc)
-	analysisHandler := http.NewAnalysisHandler(analyzeUC)
+	analysisHandler := http.NewAnalysisHandler(analyzeUC, exportUc)
 
 	r := gin.Default()
 
@@ -69,6 +75,7 @@ func main() {
 
 	auth.GET("analyses", analysisHandler.GetAnalyses)
 	auth.GET("analyses/:id", analysisHandler.GetAnalysisDetail)
+	auth.GET("/analyses/:id/export", analysisHandler.ExportAnalysis)
 
 	port := os.Getenv("PORT")
 	if port == "" {
