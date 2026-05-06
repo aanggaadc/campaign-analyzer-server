@@ -6,5 +6,6 @@ type CampaignRepository interface {
 	FindAll(userID string, limit, offset int) ([]*domain.Campaign, error)
 	Count(userID string) (int, error)
 	Save(campaign *domain.Campaign) (string, error)
+	SaveBatch(campaigns []*domain.Campaign) error
 	FindByID(userID, campaignID string) (*domain.Campaign, error)
 }

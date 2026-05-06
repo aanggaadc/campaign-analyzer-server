@@ -58,6 +58,14 @@ func (c *Campaign) Validate() error {
 		return errors.New("metrics cannot be negative")
 	}
 
+	if c.Clicks > c.Impressions {
+		return errors.New("clicks cannot be greater than impressions")
+	}
+
+	if c.Conversions > c.Clicks {
+		return errors.New("conversions cannot be greater than clicks")
+	}
+
 	if c.DateEnd.Before(c.DateStart) {
 		return errors.New("end date cannot be before start date")
 	}

@@ -148,3 +148,28 @@ func (h *CampaignHandler) DownloadCampaignTemplate(c *gin.Context) {
 
 	c.String(http.StatusOK, csvContent)
 }
+
+func (h *CampaignHandler) ImportCSV(c *gin.Context) {
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, presenter.ErrorResponse("file is required"))
+		return
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, presenter.ErrorResponse("cannot open file"))
+		return
+	}
+	defer file.Close()
+
+	userID := c.GetString("user_id")
+
+	result, err := h.usecase.ImportCSV(userID, file)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, presenter.ErrorResponse(err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, presenter.Success(result))
+}

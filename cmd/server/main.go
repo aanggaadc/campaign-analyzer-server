@@ -62,6 +62,7 @@ func main() {
 	auth.GET("campaigns", campaignHandler.GetCampaigns)
 	auth.POST("campaigns", campaignHandler.CreateCampaign)
 	auth.GET("/campaigns/template", campaignHandler.DownloadCampaignTemplate)
+	auth.POST("/campaigns/import", campaignHandler.ImportCSV)
 	auth.GET("/campaigns/:id", campaignHandler.GetCampaignDetail)
 	auth.GET("/campaigns/:id/analyze", analysisHandler.AnalyzeCampaign)
 	auth.GET("/campaigns/:id/metrics", campaignHandler.GetCampaignMetrics)

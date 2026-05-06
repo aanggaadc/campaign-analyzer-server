@@ -2,6 +2,8 @@ package database
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"campaign-analyzer/internal/domain"
 
@@ -136,4 +138,46 @@ func (r *CampaignRepositoryPostgres) Save(campaign *domain.Campaign) (string, er
 	).Scan(&id)
 
 	return id, err
+}
+
+func (r *CampaignRepositoryPostgres) SaveBatch(campaigns []*domain.Campaign) error {
+	if len(campaigns) == 0 {
+		return nil
+	}
+
+	query := `
+	INSERT INTO campaigns 
+	(user_id, name, platform, impressions, clicks, conversions, cost, date_start, date_end)
+	VALUES 
+	`
+
+	values := []interface{}{}
+	placeholders := []string{}
+
+	for i, c := range campaigns {
+		idx := i * 10
+
+		placeholders = append(placeholders, fmt.Sprintf(
+			"($%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d)",
+			idx+1, idx+2, idx+3, idx+4, idx+5,
+			idx+6, idx+7, idx+8, idx+9, idx+10,
+		))
+
+		values = append(values,
+			c.UserID,
+			c.Name,
+			c.Platform,
+			c.Impressions,
+			c.Clicks,
+			c.Conversions,
+			c.Cost,
+			c.DateStart,
+			c.DateEnd,
+		)
+	}
+
+	query += strings.Join(placeholders, ",")
+
+	_, err := r.db.Exec(context.Background(), query, values...)
+	return err
 }
