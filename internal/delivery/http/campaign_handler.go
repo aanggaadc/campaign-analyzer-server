@@ -138,3 +138,13 @@ func (h *CampaignHandler) CreateCampaign(c *gin.Context) {
 
 	c.JSON(http.StatusOK, presenter.Success(presenter.ToCampaignResponse(campaign)))
 }
+
+func (h *CampaignHandler) DownloadCampaignTemplate(c *gin.Context) {
+	csvContent := `name,platform,impressions,clicks,conversions,cost,date_start,date_end`
+
+	c.Header("Content-Description", "File Transfer")
+	c.Header("Content-Disposition", "attachment; filename=campaign_template.csv")
+	c.Header("Content-Type", "text/csv")
+
+	c.String(http.StatusOK, csvContent)
+}
