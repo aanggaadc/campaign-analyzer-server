@@ -28,7 +28,7 @@ func main() {
 
 	db := database.NewPostgresPool(os.Getenv("DATABASE_URL"))
 
-	repo := database.NewCampaignRepositoryPostgres(db)
+	repo := database.NewCampaignRepository(db)
 	analysisRepo := database.NewAnalysisRepository(db)
 	// openAIService := ai.NewOpenAIService(os.Getenv("OPENAI_API_KEY"))
 	geminiService := ai.NewGeminiService(os.Getenv("GEMINI_API_KEY"))

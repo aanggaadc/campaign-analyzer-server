@@ -10,15 +10,15 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type CampaignRepositoryPostgres struct {
+type CampaignRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewCampaignRepositoryPostgres(db *pgxpool.Pool) *CampaignRepositoryPostgres {
-	return &CampaignRepositoryPostgres{db: db}
+func NewCampaignRepository(db *pgxpool.Pool) *CampaignRepository {
+	return &CampaignRepository{db: db}
 }
 
-func (r *CampaignRepositoryPostgres) FindAll(
+func (r *CampaignRepository) FindAll(
 	userID string,
 	limit, offset int,
 ) ([]*domain.Campaign, error) {
@@ -69,7 +69,7 @@ func (r *CampaignRepositoryPostgres) FindAll(
 	return campaigns, nil
 }
 
-func (r *CampaignRepositoryPostgres) Count(userID string) (int, error) {
+func (r *CampaignRepository) Count(userID string) (int, error) {
 	query := `
 		SELECT COUNT(*) 
 		FROM campaigns
@@ -85,7 +85,7 @@ func (r *CampaignRepositoryPostgres) Count(userID string) (int, error) {
 	return total, nil
 }
 
-func (r *CampaignRepositoryPostgres) FindByID(userID, campaignID string) (*domain.Campaign, error) {
+func (r *CampaignRepository) FindByID(userID, campaignID string) (*domain.Campaign, error) {
 	query := `
 		SELECT id, user_id, name, platform, impressions, clicks, conversions, cost, date_start, date_end
 		FROM campaigns
@@ -116,7 +116,7 @@ func (r *CampaignRepositoryPostgres) FindByID(userID, campaignID string) (*domai
 	return &c, nil
 }
 
-func (r *CampaignRepositoryPostgres) Save(campaign *domain.Campaign) (string, error) {
+func (r *CampaignRepository) Save(campaign *domain.Campaign) (string, error) {
 	query := `
 		INSERT INTO campaigns 
 		(user_id, name, platform, impressions, clicks, conversions, cost, date_start, date_end)
@@ -140,7 +140,7 @@ func (r *CampaignRepositoryPostgres) Save(campaign *domain.Campaign) (string, er
 	return id, err
 }
 
-func (r *CampaignRepositoryPostgres) SaveBatch(campaigns []*domain.Campaign) error {
+func (r *CampaignRepository) SaveBatch(campaigns []*domain.Campaign) error {
 	if len(campaigns) == 0 {
 		return nil
 	}
