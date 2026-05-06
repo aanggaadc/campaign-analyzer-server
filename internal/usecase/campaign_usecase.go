@@ -107,6 +107,7 @@ func (u *CampaignUsecase) ImportCSV(userID string, file multipart.File) (*dto.Im
 
 	result := &dto.ImportResult{}
 
+	// ===== 1. VALIDATE HEADER =====
 	header, err := reader.Read()
 	if err != nil {
 		return nil, err
@@ -129,12 +130,15 @@ func (u *CampaignUsecase) ImportCSV(userID string, file multipart.File) (*dto.Im
 		}
 	}
 
+	// ===== 2. INIT =====
 	rowNumber := 1
-	batchSize := 100
 	maxPreview := 50
+	batchSize := 100
 
-	var batch []*domain.Campaign
+	var allCampaigns []*domain.Campaign
+	hasError := false
 
+	// ===== 3. PARSE & VALIDATE ALL ROWS =====
 	for {
 		rowNumber++
 
@@ -144,6 +148,7 @@ func (u *CampaignUsecase) ImportCSV(userID string, file multipart.File) (*dto.Im
 		}
 
 		if err != nil {
+			hasError = true
 			result.Failed++
 
 			if len(result.Rows) < maxPreview {
@@ -161,6 +166,7 @@ func (u *CampaignUsecase) ImportCSV(userID string, file multipart.File) (*dto.Im
 
 		campaign, err := u.parser.ParseRow(userID, row)
 		if err != nil {
+			hasError = true
 			result.Failed++
 
 			if len(result.Rows) < maxPreview {
@@ -180,6 +186,7 @@ func (u *CampaignUsecase) ImportCSV(userID string, file multipart.File) (*dto.Im
 			continue
 		}
 
+		// valid row preview
 		if len(result.Rows) < maxPreview {
 			result.Rows = append(result.Rows, dto.ImportRowResult{
 				Row:         rowNumber,
@@ -193,34 +200,30 @@ func (u *CampaignUsecase) ImportCSV(userID string, file multipart.File) (*dto.Im
 			})
 		}
 
-		batch = append(batch, campaign)
-
-		if len(batch) >= batchSize {
-			err := u.repo.SaveBatch(batch)
-			if err != nil {
-				result.Failed += len(batch)
-
-				result.Errors = append(result.Errors,
-					fmt.Sprintf("failed to save batch at row %d: %v", rowNumber, err),
-				)
-
-			} else {
-				result.Imported += len(batch)
-			}
-
-			batch = batch[:0]
-		}
+		allCampaigns = append(allCampaigns, campaign)
 	}
 
-	if len(batch) > 0 {
+	// ===== 4. ABORT IF ANY ERROR =====
+	if hasError {
+		result.Errors = append(result.Errors, "import aborted: some rows are invalid")
+		return result, nil
+	}
+
+	// ===== 5. SAVE ALL (BATCH) =====
+	for i := 0; i < len(allCampaigns); i += batchSize {
+		end := i + batchSize
+		if end > len(allCampaigns) {
+			end = len(allCampaigns)
+		}
+
+		batch := allCampaigns[i:end]
+
 		err := u.repo.SaveBatch(batch)
 		if err != nil {
-			result.Failed += len(batch)
-
 			result.Errors = append(result.Errors,
-				fmt.Sprintf("failed to save final batch: %v", err),
+				fmt.Sprintf("failed to save batch starting at row %d: %v", i+1, err),
 			)
-
+			result.Failed += len(batch)
 		} else {
 			result.Imported += len(batch)
 		}
