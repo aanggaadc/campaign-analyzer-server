@@ -33,14 +33,15 @@ func main() {
 	// openAIService := ai.NewOpenAIService(os.Getenv("OPENAI_API_KEY"))
 	geminiService := ai.NewGeminiService(os.Getenv("GEMINI_API_KEY"))
 
-	uc := usecase.NewCampaignUsecase(repo)
+	campaignUc := usecase.NewCampaignUsecase(repo)
 	analyzeUC := usecase.NewAnalyzeCampaignUsecase(
 		repo,
 		analysisRepo,
 		geminiService,
 	)
 
-	handler := http.NewCampaignHandler(uc, analyzeUC)
+	campaignHandler := http.NewCampaignHandler(campaignUc)
+	analysisHandler := http.NewAnalysisHandler(analyzeUC)
 
 	r := gin.Default()
 
@@ -58,14 +59,14 @@ func main() {
 	auth := r.Group("/")
 	auth.Use(middleware.AuthMiddleware())
 
-	auth.GET("campaigns", handler.GetCampaigns)
-	auth.GET("/campaigns/:id", handler.GetCampaignDetail)
-	auth.GET("/campaigns/:id/analyze", handler.AnalyzeCampaign)
-	auth.GET("/campaigns/:id/metrics", handler.GetCampaignMetrics)
-	auth.POST("campaigns", handler.CreateCampaign)
+	auth.GET("campaigns", campaignHandler.GetCampaigns)
+	auth.GET("/campaigns/:id", campaignHandler.GetCampaignDetail)
+	auth.GET("/campaigns/:id/analyze", analysisHandler.AnalyzeCampaign)
+	auth.GET("/campaigns/:id/metrics", campaignHandler.GetCampaignMetrics)
+	auth.POST("campaigns", campaignHandler.CreateCampaign)
 
-	auth.GET("analyses", handler.GetAnalyses)
-	auth.GET("analyses/:id", handler.GetAnalysisDetail)
+	auth.GET("analyses", analysisHandler.GetAnalyses)
+	auth.GET("analyses/:id", analysisHandler.GetAnalysisDetail)
 
 	port := os.Getenv("PORT")
 	if port == "" {
