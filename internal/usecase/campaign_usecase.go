@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"campaign-analyzer/internal/domain"
+	"campaign-analyzer/internal/dto"
 	"campaign-analyzer/internal/repository"
 	"encoding/csv"
 	"fmt"
@@ -11,28 +12,13 @@ import (
 	"time"
 )
 
-type ImportResult struct {
-	Imported int               `json:"imported"`
-	Failed   int               `json:"failed"`
-	Errors   []string          `json:"errors,omitempty"`
-	Rows     []ImportRowResult `json:"rows"`
-}
-
-type ImportRowResult struct {
-	Row      int    `json:"row"`
-	Name     string `json:"name"`
-	Platform string `json:"platform"`
-	Status   string `json:"status"` // "valid" | "invalid"
-	Error    string `json:"error,omitempty"`
-}
-
 type CampaignUsecase struct {
 	repo   repository.CampaignRepository
 	parser *CampaignCSVParser
 }
 
 type CampaignUsecaseInterface interface {
-	ImportCSV(userID string, file multipart.File) (*ImportResult, error)
+	ImportCSV(userID string, file multipart.File) (*dto.ImportResult, error)
 }
 
 type CampaignMetrics struct {
@@ -116,10 +102,10 @@ func (u *CampaignUsecase) GetCampaignMetrics(campaign *domain.Campaign) Campaign
 	}
 }
 
-func (u *CampaignUsecase) ImportCSV(userID string, file multipart.File) (*ImportResult, error) {
+func (u *CampaignUsecase) ImportCSV(userID string, file multipart.File) (*dto.ImportResult, error) {
 	reader := csv.NewReader(file)
 
-	result := &ImportResult{}
+	result := &dto.ImportResult{}
 
 	header, err := reader.Read()
 	if err != nil {
@@ -161,11 +147,12 @@ func (u *CampaignUsecase) ImportCSV(userID string, file multipart.File) (*Import
 			result.Failed++
 
 			if len(result.Rows) < maxPreview {
-				result.Rows = append(result.Rows, ImportRowResult{
-					Row:    rowNumber,
-					Name:   u.parser.safeGet(row, 0),
-					Status: "invalid",
-					Error:  "failed to read row",
+				result.Rows = append(result.Rows, dto.ImportRowResult{
+					Row:      rowNumber,
+					Name:     u.parser.safeGet(row, 0),
+					Platform: u.parser.safeGet(row, 1),
+					Status:   "invalid",
+					Error:    "failed to read row",
 				})
 			}
 
@@ -177,12 +164,16 @@ func (u *CampaignUsecase) ImportCSV(userID string, file multipart.File) (*Import
 			result.Failed++
 
 			if len(result.Rows) < maxPreview {
-				result.Rows = append(result.Rows, ImportRowResult{
-					Row:      rowNumber,
-					Name:     u.parser.safeGet(row, 0),
-					Platform: u.parser.safeGet(row, 1),
-					Status:   "invalid",
-					Error:    err.Error(),
+				result.Rows = append(result.Rows, dto.ImportRowResult{
+					Row:         rowNumber,
+					Name:        u.parser.safeGet(row, 0),
+					Platform:    u.parser.safeGet(row, 1),
+					Impressions: u.parser.safeGet(row, 2),
+					Clicks:      u.parser.safeGet(row, 3),
+					Conversions: u.parser.safeGet(row, 4),
+					Cost:        u.parser.safeGet(row, 5),
+					Status:      "invalid",
+					Error:       err.Error(),
 				})
 			}
 
@@ -190,11 +181,15 @@ func (u *CampaignUsecase) ImportCSV(userID string, file multipart.File) (*Import
 		}
 
 		if len(result.Rows) < maxPreview {
-			result.Rows = append(result.Rows, ImportRowResult{
-				Row:      rowNumber,
-				Name:     campaign.Name,
-				Platform: campaign.Platform,
-				Status:   "valid",
+			result.Rows = append(result.Rows, dto.ImportRowResult{
+				Row:         rowNumber,
+				Name:        campaign.Name,
+				Platform:    campaign.Platform,
+				Impressions: u.parser.safeGet(row, 2),
+				Clicks:      u.parser.safeGet(row, 3),
+				Conversions: u.parser.safeGet(row, 4),
+				Cost:        u.parser.safeGet(row, 5),
+				Status:      "valid",
 			})
 		}
 
