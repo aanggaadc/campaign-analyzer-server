@@ -12,7 +12,5 @@ type Analysis struct {
 	PriorityActions []string
 	CreatedAt       time.Time
 
-	CampaignName string
-	Platform     string
-	CTR          float64
+	Campaign *Campaign
 }

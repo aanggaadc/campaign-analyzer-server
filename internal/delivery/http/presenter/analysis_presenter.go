@@ -27,9 +27,9 @@ func ToAnalysisResponse(a *domain.Analysis) AnalysisResponse {
 		Recommendations: a.Recommendations,
 		PriorityActions: a.PriorityActions,
 		CreatedAt:       a.CreatedAt.Format("2006-01-02"),
-		CampaignName:    a.CampaignName,
-		Platform:        a.Platform,
-		CTR:             a.CTR,
+		CampaignName:    a.Campaign.Name,
+		Platform:        a.Campaign.Platform,
+		CTR:             a.Campaign.CTR(),
 	}
 }
 

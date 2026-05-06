@@ -35,9 +35,9 @@ func (p *PDFService) GenerateAnalysisPDF(data dto.AnalysisExportData) ([]byte, e
 
 	pdf.Cell(0, 8, fmt.Sprintf("CTR: %.2f", data.CTR))
 	pdf.Ln(6)
-	// pdf.Cell(0, 8, fmt.Sprintf("CPC: %.2f", data.CPC))
-	// pdf.Ln(6)
-	// pdf.Cell(0, 8, fmt.Sprintf("CPA: %.2f", data.CPA))
+	pdf.Cell(0, 8, fmt.Sprintf("CPC: %.2f", data.CPC))
+	pdf.Ln(6)
+	pdf.Cell(0, 8, fmt.Sprintf("CPA: %.2f", data.CPA))
 
 	pdf.Ln(10)
 

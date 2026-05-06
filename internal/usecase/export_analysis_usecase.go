@@ -24,19 +24,19 @@ func NewExportAnalysisUsecase(repo repository.AnalysisRepository, pdf PDFGenerat
 
 func (u *ExportAnalysisUsecase) Execute(userID string, id string) ([]byte, error) {
 	analysis, err := u.repo.FindByID(userID, id)
-	// campaign, err := u.campaignRepo.FindByID(userID, analysis.CampaignID)
+	campaign := analysis.Campaign
 
 	if err != nil {
 		return nil, err
 	}
 
 	data := dto.AnalysisExportData{
-		CampaignName: analysis.CampaignName,
-		Platform:     analysis.Platform,
+		CampaignName: campaign.Name,
+		Platform:     campaign.Platform,
 
-		CTR: analysis.CTR,
-		// CPC: campaign.CPC(),
-		// CPA: campaign.CPA(),
+		CTR: campaign.CTR(),
+		CPC: campaign.CPC(),
+		CPA: campaign.CPA(),
 
 		Summary:         analysis.Summary,
 		Issues:          analysis.Issues,
