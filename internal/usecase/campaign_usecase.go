@@ -12,14 +12,18 @@ import (
 )
 
 type ImportResult struct {
-	Imported int              `json:"imported"`
-	Failed   int              `json:"failed"`
-	Errors   []ImportErrorRow `json:"errors"`
+	Imported int               `json:"imported"`
+	Failed   int               `json:"failed"`
+	Errors   []string          `json:"errors,omitempty"`
+	Rows     []ImportRowResult `json:"rows"`
 }
 
-type ImportErrorRow struct {
-	Row     int    `json:"row"`
-	Message string `json:"message"`
+type ImportRowResult struct {
+	Row      int    `json:"row"`
+	Name     string `json:"name"`
+	Platform string `json:"platform"`
+	Status   string `json:"status"` // "valid" | "invalid"
+	Error    string `json:"error,omitempty"`
 }
 
 type CampaignUsecase struct {
@@ -127,14 +131,22 @@ func (u *CampaignUsecase) ImportCSV(userID string, file multipart.File) (*Import
 		"conversions", "cost", "date_start", "date_end",
 	}
 
+	if len(header) < len(expected) {
+		result.Errors = append(result.Errors, "invalid header: column count mismatch")
+		return result, nil
+	}
+
 	for i := range expected {
 		if strings.ToLower(strings.TrimSpace(header[i])) != expected[i] {
-			return nil, fmt.Errorf("invalid header format")
+			result.Errors = append(result.Errors, "invalid header format")
+			return result, nil
 		}
 	}
 
 	rowNumber := 1
 	batchSize := 100
+	maxPreview := 50
+
 	var batch []*domain.Campaign
 
 	for {
@@ -144,23 +156,46 @@ func (u *CampaignUsecase) ImportCSV(userID string, file multipart.File) (*Import
 		if err == io.EOF {
 			break
 		}
+
 		if err != nil {
 			result.Failed++
-			result.Errors = append(result.Errors, ImportErrorRow{
-				Row:     rowNumber,
-				Message: "failed to read row",
-			})
+
+			if len(result.Rows) < maxPreview {
+				result.Rows = append(result.Rows, ImportRowResult{
+					Row:    rowNumber,
+					Name:   u.parser.safeGet(row, 0),
+					Status: "invalid",
+					Error:  "failed to read row",
+				})
+			}
+
 			continue
 		}
 
 		campaign, err := u.parser.ParseRow(userID, row)
 		if err != nil {
 			result.Failed++
-			result.Errors = append(result.Errors, ImportErrorRow{
-				Row:     rowNumber,
-				Message: err.Error(),
-			})
+
+			if len(result.Rows) < maxPreview {
+				result.Rows = append(result.Rows, ImportRowResult{
+					Row:      rowNumber,
+					Name:     u.parser.safeGet(row, 0),
+					Platform: u.parser.safeGet(row, 1),
+					Status:   "invalid",
+					Error:    err.Error(),
+				})
+			}
+
 			continue
+		}
+
+		if len(result.Rows) < maxPreview {
+			result.Rows = append(result.Rows, ImportRowResult{
+				Row:      rowNumber,
+				Name:     campaign.Name,
+				Platform: campaign.Platform,
+				Status:   "valid",
+			})
 		}
 
 		batch = append(batch, campaign)
@@ -168,13 +203,12 @@ func (u *CampaignUsecase) ImportCSV(userID string, file multipart.File) (*Import
 		if len(batch) >= batchSize {
 			err := u.repo.SaveBatch(batch)
 			if err != nil {
-				for range batch {
-					result.Failed++
-				}
-				result.Errors = append(result.Errors, ImportErrorRow{
-					Row:     rowNumber,
-					Message: "failed to save batch",
-				})
+				result.Failed += len(batch)
+
+				result.Errors = append(result.Errors,
+					fmt.Sprintf("failed to save batch at row %d: %v", rowNumber, err),
+				)
+
 			} else {
 				result.Imported += len(batch)
 			}
@@ -186,18 +220,16 @@ func (u *CampaignUsecase) ImportCSV(userID string, file multipart.File) (*Import
 	if len(batch) > 0 {
 		err := u.repo.SaveBatch(batch)
 		if err != nil {
-			for range batch {
-				result.Failed++
-			}
-			result.Errors = append(result.Errors, ImportErrorRow{
-				Row:     rowNumber,
-				Message: "failed to save final batch",
-			})
+			result.Failed += len(batch)
+
+			result.Errors = append(result.Errors,
+				fmt.Sprintf("failed to save final batch: %v", err),
+			)
+
 		} else {
 			result.Imported += len(batch)
 		}
 	}
 
 	return result, nil
-
 }

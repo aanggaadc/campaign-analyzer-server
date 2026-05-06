@@ -60,6 +60,13 @@ func (p *CampaignCSVParser) normalizePlatform(val string) string {
 	}
 }
 
+func (p *CampaignCSVParser) safeGet(row []string, index int) string {
+	if index >= len(row) {
+		return ""
+	}
+	return strings.TrimSpace(row[index])
+}
+
 func (p *CampaignCSVParser) ParseRow(userID string, row []string) (*domain.Campaign, error) {
 
 	if len(row) < 8 {

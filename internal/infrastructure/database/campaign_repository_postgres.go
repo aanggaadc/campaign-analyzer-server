@@ -155,12 +155,12 @@ func (r *CampaignRepositoryPostgres) SaveBatch(campaigns []*domain.Campaign) err
 	placeholders := []string{}
 
 	for i, c := range campaigns {
-		idx := i * 10
+		idx := i * 9
 
 		placeholders = append(placeholders, fmt.Sprintf(
-			"($%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d)",
+			"($%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d,$%d)",
 			idx+1, idx+2, idx+3, idx+4, idx+5,
-			idx+6, idx+7, idx+8, idx+9, idx+10,
+			idx+6, idx+7, idx+8, idx+9,
 		))
 
 		values = append(values,
