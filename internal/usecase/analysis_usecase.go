@@ -129,6 +129,7 @@ func (uc *AnalyzeCampaignUsecase) Execute(userID, campaignID string) (*domain.An
 	}
 
 	analysis.ID = id
+	analysis.Campaign = campaign
 
 	return analysis, nil
 }
