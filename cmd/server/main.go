@@ -62,6 +62,17 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
+	startTime := time.Now()
+
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status":    "ok",
+			"message":   "Campaign Analyzer API is running",
+			"timestamp": time.Now(),
+			"uptime":    time.Since(startTime).String(),
+		})
+	})
+
 	auth := r.Group("/")
 	auth.Use(middleware.AuthMiddleware())
 
